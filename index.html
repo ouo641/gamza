@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="ko" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>전력량계 인사이트 2025 — 롱폼 리포트</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+          colors: {
+            brand: {
+              50:'#eef8ff',100:'#d8efff',200:'#b2dfff',300:'#83c8ff',400:'#4ea7ff',
+              500:'#1f86ff',600:'#0f69e6',700:'#0c54b4',800:'#0d478f',900:'#0d3b73'
+            }
+          },
+          boxShadow: {
+            glass: '0 10px 30px rgba(10, 20, 60, .15)'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js (for simple charts) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+
+  <style>
+    /* Reveal-on-scroll */
+    .will-animate { opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease; }
+    .will-animate.in { opacity: 1; transform: translateY(0); }
+
+    /* Parallax decorative blobs */
+    .parallax { will-change: transform; transition: transform .1s linear; }
+
+    /* Reading progress widget (top-right) */
+    .read-progress { position: fixed; top: 16px; right: 16px; width: 60px; height: 60px; z-index: 60; }
+    .read-progress::before {
+      content: ''; position: absolute; inset: 0; border-radius: 9999px;
+      background: conic-gradient(var(--prg, 0deg), rgba(79,129,255,.95) 0 var(--prg, 0deg), rgba(140,140,160,.2) var(--prg, 0deg) 360deg);
+      filter: drop-shadow(0 4px 14px rgba(48, 98, 255, .35));
+    }
+    .read-progress::after {
+      content: ''; position: absolute; inset: 6px; border-radius: 9999px;
+      background: rgba(255,255,255,.9);
+    }
+    .dark .read-progress::after { background: rgba(20,20,25,.9); }
+
+    .read-progress__label { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; font-size: 0.9rem; }
+    .read-progress__sub { position: absolute; top: 64px; right: 0; font-size: .7rem; opacity: .8; white-space: nowrap; }
+
+    /* Sticky TOC on wide screens */
+    @media (min-width: 1024px) {
+      .toc { position: sticky; top: 100px; height: calc(100vh - 120px); overflow: auto; }
+    }
+
+    /* Thin top bar progress (optional) */
+    .topbar { position: fixed; left: 0; top: 0; height: 3px; width: 100vw; background: linear-gradient(90deg, rgba(79,129,255,.85) var(--w,0%), transparent 0); z-index: 50; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .will-animate { transition: none; }
+      .parallax { transition: none; }
+    }
+  </style>
+</head>
+<body class="bg-white dark:bg-neutral-950 text-neutral-800 dark:text-neutral-100 antialiased">
+  <!-- Thin progress bar -->
+  <div id="topbar" class="topbar"></div>
+  
+  <!-- Reading progress (top-right) -->
+  <div class="read-progress">
+    <div id="readPct" class="read-progress__label">0%</div>
+    <div id="readSub" class="read-progress__sub text-neutral-600 dark:text-neutral-300">읽음</div>
+  </div>
+
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 z-40">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="mt-4 flex items-center justify-between rounded-2xl bg-white/70 dark:bg-neutral-900/60 shadow-glass backdrop-blur px-4 py-3 will-animate">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 shadow-glass"></div>
+          <a href="#top" class="text-lg font-extrabold tracking-tight">MeterScope · Insight</a>
+          <span class="hidden md:inline text-neutral-400 dark:text-neutral-500">전력량계 롱폼 리포트</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="darkToggle" class="px-3 py-2 rounded-xl text-sm font-semibold bg-neutral-900 text-white dark:bg-neutral-200 dark:text-neutral-900">다크모드</button>
+          <a href="#sources" class="px-3 py-2 rounded-xl text-sm border border-neutral-200 dark:border-neutral-800">출처</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section id="top" class="relative isolate overflow-hidden pt-28">
+    <!-- Decorative blobs -->
+    <div class="absolute -z-10 inset-0 pointer-events-none">
+      <div class="absolute -top-24 -left-24 h-[60vh] w-[60vw] rounded-full bg-gradient-to-br from-brand-300/50 to-brand-600/30 blur-3xl parallax" data-speed="0.08"></div>
+      <div class="absolute top-24 right-0 h-[45vh] w-[45vw] rounded-full bg-gradient-to-tr from-emerald-300/40 to-brand-400/30 blur-3xl parallax" data-speed="0.15"></div>
+    </div>
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-[260px_1fr] gap-10">
+        <!-- TOC -->
+        <aside class="hidden lg:block toc will-animate">
+          <nav class="text-sm">
+            <div class="font-bold text-neutral-500 mb-3">목차</div>
+            <ol id="toc" class="space-y-2">
+              <!-- built by JS -->
+            </ol>
+          </nav>
+        </aside>
+
+        <!-- Main hero content -->
+        <div>
+          <h1 class="will-animate text-4xl sm:text-5xl font-extrabold leading-tight">전력량계 인사이트 2025
+            <span class="block text-2xl sm:text-3xl mt-3 text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-emerald-600">정보 · 통계 · 요약</span>
+          </h1>
+          <p class="will-animate mt-4 text-neutral-600 dark:text-neutral-400">
+            스마트미터(AMI), 통신 스택(DLMS/Wi‑SUN/PLC/LoRa), 인증체계(MID/OIML/KERI)와 핵심 지표를 한 페이지로 정리한 롱폼 사이트. 스크롤에 반응하여 핵심 포인트를 차례로 드러낸다.
+          </p>
+
+          <div class="will-animate mt-6 grid sm:grid-cols-3 gap-3">
+            <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+              <div class="text-xs text-neutral-500">스마트미터 보급률(데모)</div>
+              <div class="mt-2 text-3xl font-extrabold"><span data-count="72">72</span>%</div>
+            </div>
+            <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+              <div class="text-xs text-neutral-500">AMI 커버리지(데모)</div>
+              <div class="mt-2 text-3xl font-extrabold"><span data-count="64">64</span>%</div>
+            </div>
+            <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+              <div class="text-xs text-neutral-500">원격검침 비중(데모)</div>
+              <div class="mt-2 text-3xl font-extrabold"><span data-count="58">58</span>%</div>
+            </div>
+          </div>
+
+          <div class="will-animate mt-8 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white/70 dark:bg-neutral-900/60 p-5">
+            <div class="font-semibold">TL;DR</div>
+            <ul class="mt-2 list-disc list-inside text-sm text-neutral-700 dark:text-neutral-300 space-y-1">
+              <li>전력량계는 <b>정확도·통신·보안</b>의 세 축으로 평가된다.</li>
+              <li>프로토콜은 현장/망 제약에 따라 <b>DLMS/PLC/Wi‑SUN/LoRa</b> 등으로 분화된다.</li>
+              <li>인증은 <b>MID/OIML/국가형식승인</b>의 삼각체계로 관리된다.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 개요 -->
+  <section id="overview" class="mt-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <h2 class="will-animate text-2xl font-extrabold">개요</h2>
+      <p class="will-animate mt-3 text-neutral-700 dark:text-neutral-300 max-w-3xl">
+        전력량계는 전기에너지 소비를 계측·집계하는 기기다. 최근에는 양방향 통신과 원격제어를 포함하는 <b>스마트미터</b>가 표준화되고 있으며,
+        수요반응(DR), 변동요금(TOU), 원격 개통/차단, 보안 모듈(보안 칩)까지 확장되고 있다. 이 문서는 기술·인증·프로토콜과 함께 시장지표를 요약한다.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION: 프로토콜/통신 -->
+  <section id="protocols" class="mt-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-8 items-start">
+        <div class="will-animate">
+          <h2 class="text-2xl font-extrabold">통신 & 상호운용성</h2>
+          <p class="mt-3 text-neutral-700 dark:text-neutral-300">현장 배선/전파 환경에 따라 프로토콜/매체가 결정된다.</p>
+          <ul class="mt-4 space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
+            <li><b>DLMS/COSEM</b>: 계량 데이터 모델의 사실상 표준. TCP/UDP/HDLC 등 전송 제약과 무관하게 적용.</li>
+            <li><b>PLC (G3‑PLC, PRIME)</b>: 전력선 통신. 저압 배전망에서 커버리지 우수.</li>
+            <li><b>Wi‑SUN FAN</b>: 6LoWPAN 기반 Mesh. 변전소/도심 밀집 환경에서 강점.</li>
+            <li><b>LoRaWAN / 셀룰러(NB‑IoT, LTE‑M)</b>: 넓은 지역 커버리지/저전력.</li>
+          </ul>
+          <div class="mt-5 text-xs text-neutral-500">* 표/차트의 수치는 데모 데이터 — 코드 내 <code>DATASET</code>에서 변경.</div>
+        </div>
+        <div class="will-animate rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white/70 dark:bg-neutral-900/60 p-5">
+          <canvas id="chartProtocol" height="160"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 표준/인증 -->
+  <section id="standards" class="mt-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <h2 class="will-animate text-2xl font-extrabold">표준 & 인증</h2>
+      <div class="will-animate mt-4 grid md:grid-cols-3 gap-4 text-sm">
+        <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+          <div class="font-semibold">정확도 규격</div>
+          <div class="mt-2 text-neutral-700 dark:text-neutral-300">IEC 62053-21/22/23, ANSI C12.20 등. Class 0.2S, 0.5S, 1 …</div>
+        </div>
+        <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+          <div class="font-semibold">합법적 계량</div>
+          <div class="mt-2 text-neutral-700 dark:text-neutral-300">유럽 MID(MI‑003), OIML R 46, 국가 형식승인/검정 체계.</div>
+        </div>
+        <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+          <div class="font-semibold">보안·서명</div>
+          <div class="mt-2 text-neutral-700 dark:text-neutral-300">HLS 인증, 키관리(KMS), 펌웨어 무결성(서명·부트체인).</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: AMI 아키텍처 -->
+  <section id="architecture" class="mt-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-8 items-start">
+        <div class="will-animate">
+          <h2 class="text-2xl font-extrabold">AMI 아키텍처(요약)</h2>
+          <ol class="mt-4 list-decimal list-inside space-y-1 text-neutral-700 dark:text-neutral-300">
+            <li>스마트미터 — 계량, 이벤트, 현장 검침.</li>
+            <li>집중기/게이트웨이 — 수집·중계(PLC/Wi‑SUN/Cellular).</li>
+            <li>MDMS — 데이터 정합/정산/분석 API.</li>
+            <li>보안 — 인증서/키수명주기, 감사 로그, 원격 펌웨어.</li>
+          </ol>
+        </div>
+        <div class="will-animate rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 bg-white/70 dark:bg-neutral-900/60">
+          <canvas id="chartTimeline" height="160"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 시장 분포 -->
+  <section id="market" class="mt-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-8 items-start">
+        <div class="will-animate rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 bg-white/70 dark:bg-neutral-900/60">
+          <canvas id="chartTypes" height="180"></canvas>
+        </div>
+        <div class="will-animate">
+          <h2 class="text-2xl font-extrabold">시장 분포(데모)</h2>
+          <p class="mt-3 text-neutral-700 dark:text-neutral-300">주거용/산업용/상업용 전력량계의 비중을 예시로 시각화했다.</p>
+          <div class="mt-4 grid grid-cols-3 gap-3 text-center">
+            <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+              <div class="text-xs text-neutral-500">주거용</div>
+              <div class="mt-1 text-2xl font-extrabold"><span data-count="55">55</span>%</div>
+            </div>
+            <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+              <div class="text-xs text-neutral-500">상업용</div>
+              <div class="mt-1 text-2xl font-extrabold"><span data-count="30">30</span>%</div>
+            </div>
+            <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+              <div class="text-xs text-neutral-500">산업용</div>
+              <div class="mt-1 text-2xl font-extrabold"><span data-count="15">15</span>%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 보안 체크리스트 -->
+  <section id="security" class="mt-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <h2 class="will-animate text-2xl font-extrabold">보안 체크리스트(요약)</h2>
+      <div class="will-animate mt-4 grid md:grid-cols-2 gap-4 text-sm">
+        <ul class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60 list-disc list-inside space-y-1">
+          <li>제조 단계: 보안부트·디버그락·고유키 주입</li>
+          <li>통신: HLS 인증, 세션키 회전, 재전송 방지</li>
+          <li>데이터: DLMS 보안 스위트, MDMS 암호화 저장</li>
+        </ul>
+        <ul class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60 list-disc list-inside space-y-1">
+          <li>운영: 롤기반 접근, 감사로그, 키 수명주기</li>
+          <li>원격펌웨어: 서명 검증, 단계적 롤아웃</li>
+          <li>현장대응: 변조/역자석 탐지, 이벤트 알림</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: FAQ -->
+  <section id="faq" class="mt-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <h2 class="will-animate text-2xl font-extrabold">FAQ</h2>
+      <div class="will-animate mt-4 grid md:grid-cols-2 gap-4">
+        <details class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+          <summary class="font-semibold cursor-pointer">정확도 등급 0.2S와 0.5S 차이는?</summary>
+          <div class="mt-2 text-sm text-neutral-700 dark:text-neutral-300">저전류 영역의 오차 한계와 기준 시험 조건이 다르다. 고정밀 요금정산·산업용은 0.2S가 선호된다.</div>
+        </details>
+        <details class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+          <summary class="font-semibold cursor-pointer">PLC vs Wi‑SUN, 무엇을 선택할까?</summary>
+          <div class="mt-2 text-sm text-neutral-700 dark:text-neutral-300">배전망/전파 환경, 기존 인프라, 통신비용을 기준으로 PoC 후 결정한다.</div>
+        </details>
+        <details class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+          <summary class="font-semibold cursor-pointer">원격검침 장애는 주로 왜 발생?</summary>
+          <div class="mt-2 text-sm text-neutral-700 dark:text-neutral-300">노이즈·설비 접속 품질, RF 간섭, 펌웨어 버전 상이, 보안 키 만료 등이 빈번한 원인이다.</div>
+        </details>
+        <details class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white/70 dark:bg-neutral-900/60">
+          <summary class="font-semibold cursor-pointer">국가별 인증은 어떻게 다를까?</summary>
+          <div class="mt-2 text-sm text-neutral-700 dark:text-neutral-300">유럽 MID, 국제 OIML, 각국의 형식승인·검정 체계가 병행된다.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 출처(예시) -->
+  <section id="sources" class="mt-24 mb-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <h2 class="will-animate text-2xl font-extrabold">데이터 출처</h2>
+      <p class="will-animate mt-3 text-neutral-700 dark:text-neutral-300">이하는 위 정보들의 출처입니다..</p>
+      <ul class="will-animate mt-4 list-disc list-inside text-sm text-neutral-700 dark:text-neutral-300 space-y-1">
+        <li>국제/국가 인증: OIML R 46, MID(MI‑003), 국가 형식승인</li>
+        <li>상호운용 인증: DLMS UA, Wi‑SUN, G3‑PLC, LoRa Alliance</li>
+        <li>운영 지표: 전력사(배전) 통계, 공공데이터 API</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="pb-20">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-sm text-neutral-500 dark:text-neutral-400 will-animate">
+      <div>© <span id="year"></span> MeterScope · Longform</div>
+    </div>
+  </footer>
+
+  <script>
+    // =================== Theme ===================
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if ((savedTheme === 'dark') || (!savedTheme && prefersDark)) document.documentElement.classList.add('dark');
+    document.getElementById('darkToggle').addEventListener('click', ()=>{
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // =================== Reading progress ===================
+    const readPct = document.getElementById('readPct');
+    const topbar = document.getElementById('topbar');
+    function updateReadingProgress(){
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      const p = Math.max(0, Math.min(1, (window.scrollY || window.pageYOffset) / (h || 1)));
+      const deg = Math.round(p * 360);
+      document.querySelector('.read-progress').style.setProperty('--prg', deg + 'deg');
+      const pct = Math.round(p * 100);
+      readPct.textContent = pct + '%';
+      topbar.style.setProperty('--w', pct + '%');
+    }
+    window.addEventListener('scroll', updateReadingProgress, {passive: true});
+    window.addEventListener('resize', updateReadingProgress);
+    updateReadingProgress();
+
+    // =================== Parallax ===================
+    const parallaxEls = Array.from(document.querySelectorAll('.parallax'));
+    function onScrollParallax(){
+      const y = window.scrollY || window.pageYOffset;
+      parallaxEls.forEach(el => {
+        const speed = parseFloat(el.dataset.speed || 0.1);
+        el.style.transform = `translate3d(0, ${y * speed}px, 0)`;
+      });
+    }
+    window.addEventListener('scroll', onScrollParallax, {passive: true});
+    onScrollParallax();
+
+    // =================== Reveal on scroll ===================
+    const observer = new IntersectionObserver((ents)=>{
+      ents.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in'); });
+    }, { threshold: .12 });
+    document.querySelectorAll('.will-animate').forEach(el => observer.observe(el));
+
+    // =================== Build TOC ===================
+    const sections = [
+      {id:'overview', title:'개요'},
+      {id:'protocols', title:'통신 & 상호운용성'},
+      {id:'standards', title:'표준 & 인증'},
+      {id:'architecture', title:'AMI 아키텍처'},
+      {id:'market', title:'시장 분포'},
+      {id:'security', title:'보안 체크리스트'},
+      {id:'faq', title:'FAQ'},
+      {id:'sources', title:'데이터 출처'}
+    ];
+    const toc = document.getElementById('toc');
+    if (toc) {
+      toc.innerHTML = sections.map(s => `<li><a href="#${s.id}" class="block px-3 py-1 rounded-lg hover:bg-neutral-100/80 dark:hover:bg-neutral-800/60" data-toc-link="${s.id}">${s.title}</a></li>`).join('');
+      const spy = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          const id = e.target.id;
+          const link = toc.querySelector(`[data-toc-link="${id}"]`);
+          if (!link) return;
+          if (e.isIntersecting) link.classList.add('bg-neutral-100/80','dark:bg-neutral-800/60');
+          else link.classList.remove('bg-neutral-100/80','dark:bg-neutral-800/60');
+        });
+      }, {rootMargin: '-40% 0px -55% 0px', threshold: 0});
+      sections.forEach(s => { const el = document.getElementById(s.id); if (el) spy.observe(el); });
+    }
+
+    // =================== Demo DATASET (edit here) ===================
+    const DATASET = {
+      protocolShare: {
+        labels: ['DLMS','G3‑PLC','Wi‑SUN','LoRaWAN','NB‑IoT','Modbus'],
+        data: [48, 22, 14, 8, 5, 3]
+      },
+      adoptionTimeline: { // simple illustrative series
+        labels: ['2018','2019','2020','2021','2022','2023','2024','2025'],
+        data: [18, 24, 30, 40, 48, 55, 62, 70]
+      },
+      typeSplit: {
+        labels: ['주거용','상업용','산업용'],
+        data: [55, 30, 15]
+      }
+    };
+
+    // =================== Charts ===================
+    function makeCharts(){
+      const ctx1 = document.getElementById('chartProtocol');
+      if (ctx1) new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: DATASET.protocolShare.labels,
+          datasets: [{ label: '프로토콜 채택(%)', data: DATASET.protocolShare.data }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { stepSize: 10 } } }
+        }
+      });
+
+      const ctx2 = document.getElementById('chartTimeline');
+      if (ctx2) new Chart(ctx2, {
+        type: 'line',
+        data: {
+          labels: DATASET.adoptionTimeline.labels,
+          datasets: [{ label: 'AMI 보급(%)', data: DATASET.adoptionTimeline.data, tension: .3, fill: true }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+
+      const ctx3 = document.getElementById('chartTypes');
+      if (ctx3) new Chart(ctx3, {
+        type: 'doughnut',
+        data: {
+          labels: DATASET.typeSplit.labels,
+          datasets: [{ data: DATASET.typeSplit.data }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } },
+          cutout: '60%'
+        }
+      });
+    }
+    if (window.Chart) makeCharts();
+    else window.addEventListener('load', makeCharts);
+
+    // =================== Count-up numbers ===================
+    const counters = Array.from(document.querySelectorAll('[data-count]'));
+    const seen = new WeakSet();
+    const counterObs = new IntersectionObserver(ents => {
+      ents.forEach(e => {
+        if (!e.isIntersecting || seen.has(e.target)) return;
+        seen.add(e.target);
+        const el = e.target; const target = +el.getAttribute('data-count');
+        const start = performance.now(); const dur = 1200;
+        function step(t){
+          const k = Math.min(1, (t - start)/dur);
+          const v = Math.round(target * (1 - Math.pow(1 - k, 3))); // easeOutCubic
+          el.textContent = v.toString();
+          if (k < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      });
+    }, { threshold: .6 });
+    counters.forEach(el => counterObs.observe(el));
+
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
